@@ -3,7 +3,7 @@
 // Substitueix la URL de sota per la del teu Apps Script Web App.
 // ============================================================
 const CONFIG = {
-  SCRIPT_URL: "ENGANXA_AQUI_LA_URL_DEL_APPS_SCRIPT_ITINERANCIA"
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxvwXfBN6Gf5j7sNaa3poXKZbLx8WxRNZun_gZxlctbUC2E4WVrp6ayXTah_X33gTHZ/exec"
 };
 
 // ---------- Claus d'emmagatzematge local ----------
