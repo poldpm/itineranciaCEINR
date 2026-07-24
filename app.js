@@ -8,10 +8,19 @@ const CONFIG = {
 
 // ---------- Claus d'emmagatzematge local ----------
 const K_AREA = 'it_area';
+const K_DATA = 'it_data';   // data (YYYY-MM-DD) de l'última selecció d'àrea
 const K_QUEUE = 'it_queue';
 
 function getArea() { return localStorage.getItem(K_AREA) || ''; }
-function setArea(v) { localStorage.setItem(K_AREA, v); }
+// En desar l'àrea hi guardem també la data d'avui, per saber si la
+// selecció és d'avui o d'un dia anterior (avuiISO està definida a sota).
+function setArea(v) { localStorage.setItem(K_AREA, v); localStorage.setItem(K_DATA, avuiISO()); }
+function getDataSeleccio() { return localStorage.getItem(K_DATA) || ''; }
+
+// Hi ha sessió activa d'AVUI? (àrea vàlida triada, i triada avui mateix)
+function sessioAvui() {
+  return !!(getArea() && trobarArea(getArea()) && getDataSeleccio() === avuiISO());
+}
 
 function getQueue() {
   try { return JSON.parse(localStorage.getItem(K_QUEUE)) || []; }
@@ -24,6 +33,13 @@ function saveQueue(q) {
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// Data d'avui en format YYYY-MM-DD (hora local), per saber si la selecció
+// d'àrea és d'avui o d'un dia anterior.
+function avuiISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 // ---------- Elements ----------
@@ -67,10 +83,10 @@ window.addEventListener('popstate', function (e) {
   //  - si venim de "Canviar àrea" (ja hi ha àrea activa) -> tornar a principal
   //  - si és la selecció inicial (sense àrea) -> deixem sortir de l'app
   if (pantallaActual === 'area') {
-    if (getArea() && trobarArea(getArea())) {
+    if (sessioAvui()) {
       entrarAMain(false);
     }
-    // si no hi ha àrea activa, no fem res especial: és la pantalla inicial
+    // si no hi ha sessió d'avui, no fem res especial: és la pantalla inicial
     return;
   }
   // Des de la pantalla principal -> reafirmem l'estat perquè el botó
@@ -576,7 +592,9 @@ function init() {
   // Estat base de l'historial (evita que el primer "enrere" tanqui l'app)
   history.replaceState({ pantalla: 'base' }, '');
 
-  if (getArea() && trobarArea(getArea())) {
+  // Cada jornada (dia nou) tornem a demanar l'àrea: només entrem directes
+  // si la selecció és d'AVUI. Si és d'un dia anterior, mostrem la selecció.
+  if (sessioAvui()) {
     entrarAMain(false);
   } else {
     pintarArees();
